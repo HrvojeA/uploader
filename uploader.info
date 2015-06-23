@@ -1,0 +1,5 @@
+name= "Uploader"
+description = "Upload module for different kinds of upload"
+core = "7.x"
+version "7.x-1.0"
+configure = admin/config/uploader

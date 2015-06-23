@@ -1,0 +1,120 @@
+<?php
+
+function uploader_menu(){
+  $items['uploader'] = array(
+    'title' => 'Uploader form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('uploader_basic'),
+    'access callback' =>TRUE,
+  );
+  return $items;
+}
+
+function uploader_basic($form, &$form_state)
+{
+  $form = array();
+  $form['username'] = array(
+      '#title' => t('Username'),
+      '#type' => 'textfield',
+      '#ajax' => array(
+          'callback' =>'uploader_basic_callback',
+          'wrapper'=>'uploader-basic-callback',
+      ),
+  );
+
+    $form['password'] = array(
+    '#title' => t('Password'),
+    '#type' => 'textfield',
+  );
+    $form['key'] = array(
+        '#title' => t('Dropbox Key'),
+        '#type' => 'textfield',
+    );
+    $form['secret'] = array(
+        '#title' => t('Dropbox Secret'),
+        '#type' => 'textfield',
+    );
+    if(isset($form_state['values']['username'])){
+    $form['password']['#description'] = 'Hi <strong>' . $form_state['values']['username'] . '</strong>!Please give your password.';
+    }
+    $form['password']['#prefix']= '<div id="uploader-basic-wrapper">';
+    $form['password']['#suffix'] ='</div>';
+
+    $form['submit'] = array(
+      '#value' => t('Login'),
+      '#type' => 'submit',
+    );
+    return $form;
+}
+
+
+
+function uploader_basic_submit($form, $form_state)
+{
+    $uploader_path='sites/all/modules/uploader';
+  //  drupal_set_message($form_state['values']['username']);
+   // drupal_set_message($form_state['values']['password']);
+
+    $GLOBALS['form_st'] = $form_state;
+
+   // echo $GLOBALS['form_st']['values']['username'];
+
+    require $uploader_path .'/app/start.php';
+    require $uploader_path . '/app/dropbox_auth.php';
+
+
+    $dbData  = $client->getMetadataWithChildren('/');
+
+    $dbAppContent = $dbData['contents'];
+
+    foreach ($dbAppContent as $dbAppContents)
+    {
+        echo $dbAppContents['path'].'</br>';
+    }
+
+
+}
+
+function uploader_block_info() {
+    // This example comes from node.module.
+    $blocks['uploader_form'] = array(
+        'info' => t('Uploader Form'),
+        'cache' => DRUPAL_NO_CACHE,
+        'visibility' => BLOCK_VISIBILITY_PHP,
+    );
+    $blocks['nemamtipojma']=array(
+        'info'=>t("Mamne Zeve"),
+        'cache'=>DRUPAL_NO_CACHE,
+    );
+    }
+function uploader_block_view($delta = '') {
+    // This example is adapted from node.module.
+    $block = array();
+
+    switch ($delta) {
+        case 'uploader_form':
+            $block['subject'] = t('Uploader S');
+            $block['content'] = array(
+                '#theme' => 'feed_icon',
+                '#url' => 'rss.xml',
+                '#title' =>  t('Uploader form'),
+            );
+            break;
+
+        case 'recent':
+            if (user_access('access content')) {
+                $block['subject'] = t('Recent content');
+                if ($nodes = node_get_recent(variable_get('node_recent_block_count', 10))) {
+                    $block['content'] = array(
+                        '#theme' => 'node_recent_block',
+                        '#nodes' => $nodes,
+                    );
+                }
+                else {
+                    $block['content'] = t('No content available.');
+                }
+            }
+            break;
+    }
+    return $block;
+}
